@@ -7105,7 +7105,70 @@ body {
                 font-size: 0.95rem;
             }
         }
+@media (max-width: 768px) {
+            .panel-explanation {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .device-image {
+                order: -1;
+                margin-bottom: 10px;
+            }
+            
+            .function-cards {
+                order: 1;
+            }
+        }
     </style>
+<style>
+/* 最優先でスマホレイアウトを適用 */
+@media screen and (max-width: 768px) {
+    .manual-content .panel-explanation {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+    }
+    
+    .manual-content .device-image {
+        order: -999 !important;
+        margin: 0 0 25px 0 !important;
+        width: 100% !important;
+        flex: none !important;
+    }
+    
+    .manual-content .function-cards {
+        order: 999 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        flex: none !important;
+    }
+    
+    .manual-content .device-image img {
+        max-width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+}
+
+/* より具体的なセレクタで確実に適用 */
+@media screen and (max-width: 768px) {
+    .manual-display .manual-content .container .section .panel-explanation {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .manual-display .manual-content .container .section .panel-explanation .device-image {
+        order: -999 !important;
+        margin-bottom: 25px !important;
+    }
+    
+    .manual-display .manual-content .container .section .panel-explanation .function-cards {
+        order: 999 !important;
+    }
+}
+</style>
 
 <html lang="ja">
 <head>
@@ -7135,6 +7198,57 @@ body {
             padding: 0 20px;
         }
         }
+/* ========== マニュアル内スマホレスポンシブ対応（修正版） ========== */
+@media (max-width: 768px) {
+    /* 機能説明パネルを縦並びに変更 */
+    .manual-content .panel-explanation {
+        display: block !important;
+        gap: 0 !important;
+        flex-direction: column !important;
+    }
+    
+    /* 画像を上部に配置 */
+    .manual-content .device-image {
+        order: -1 !important;
+        margin: 0 0 25px 0 !important;
+        width: 100% !important;
+    }
+    
+    /* 機能カードを下部に配置 */
+    .manual-content .function-cards {
+        order: 1 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* 画像のサイズ調整 */
+    .manual-content .device-image img {
+        max-width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+    
+    /* 図表画像も調整 */
+    .manual-content .diagram img {
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 300px !important;
+    }
+}
+
+/* 小型スマホ対応 */
+@media (max-width: 480px) {
+    .manual-content .device-image img,
+    .manual-content .diagram img {
+        max-height: 250px !important;
+    }
+    
+    .manual-content .device-image {
+        margin: 0 0 20px 0 !important;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -8471,8 +8585,137 @@ body {
       display:block !important;   /* 行間の余白も消す */
   }
 }
+// マニュアル表示時のレスポンシブ対応
+function adjustManualLayout() {
+    if (window.innerWidth <= 768) {
+        const panelExplanations = document.querySelectorAll('.manual-content .panel-explanation');
+        panelExplanations.forEach(panel => {
+            const deviceImage = panel.querySelector('.device-image');
+            const functionCards = panel.querySelector('.function-cards');
+            
+            if (deviceImage && functionCards) {
+                // 画像を最初に移動
+                panel.insertBefore(deviceImage, functionCards);
+                
+                // スタイルを直接適用
+                panel.style.display = 'block';
+                panel.style.gap = '0';
+                deviceImage.style.margin = '0 0 25px 0';
+                deviceImage.style.order = '-1';
+                functionCards.style.order = '1';
+            }
+        });
+    }
+}
+
+// マニュアル表示時に実行
+document.addEventListener('DOMContentLoaded', () => {
+    // 既存のコード...
+    
+    // バージョンカードのクリック時に追加
+    versionCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const version = card.getAttribute('data-version');
+            if (manualData[version]) {
+                manualContent.innerHTML = manualData[version];
+                manualHeaderTitle.textContent = `SynchroWave01 ${versionNameMap[version] ?? version} 取扱説明書`;
+                manualOverlay.style.display = 'none';
+                manualDisplay.style.display = 'flex';
+                manualContent.scrollTop = 0;
+                
+                // レスポンシブ対応を実行
+                setTimeout(() => {
+                    optimizeImages();
+                    adjustManualLayout();
+                }, 100);
+            }
+        });
+    });
+    
+    // ウィンドウリサイズ時にも実行
+    window.addEventListener('resize', adjustManualLayout);
+});
 
 </style>
+<script>
+// マニュアル表示時のレスポンシブ対応を強制実行
+function forceManualLayout() {
+    if (window.innerWidth <= 768) {
+        // すべての.panel-explanationを取得
+        const panelExplanations = document.querySelectorAll('.manual-content .panel-explanation');
+        
+        panelExplanations.forEach(panel => {
+            const deviceImage = panel.querySelector('.device-image');
+            const functionCards = panel.querySelector('.function-cards');
+            
+            if (deviceImage && functionCards) {
+                // 強制的にflexレイアウトを無効化
+                panel.style.setProperty('display', 'block', 'important');
+                panel.style.setProperty('flex-direction', 'column', 'important');
+                panel.style.setProperty('gap', '0', 'important');
+                
+                // 画像を上部に配置
+                deviceImage.style.setProperty('order', '-1', 'important');
+                deviceImage.style.setProperty('margin', '0 0 25px 0', 'important');
+                deviceImage.style.setProperty('width', '100%', 'important');
+                
+                // 機能カードを下部に配置
+                functionCards.style.setProperty('order', '1', 'important');
+                functionCards.style.setProperty('margin', '0', 'important');
+                functionCards.style.setProperty('width', '100%', 'important');
+                
+                // 画像のサイズ調整
+                const img = deviceImage.querySelector('img');
+                if (img) {
+                    img.style.setProperty('max-width', '100%', 'important');
+                    img.style.setProperty('height', 'auto', 'important');
+                    img.style.setProperty('display', 'block', 'important');
+                    img.style.setProperty('margin', '0 auto', 'important');
+                }
+                
+                // DOMの順序も物理的に変更
+                if (panel.firstChild === functionCards) {
+                    panel.insertBefore(deviceImage, functionCards);
+                }
+            }
+        });
+    }
+}
+
+// 既存のJavaScriptを修正
+document.addEventListener('DOMContentLoaded', () => {
+    // ... 既存のコード ...
+    
+    // バージョンカードのクリック時に修正
+    versionCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const version = card.getAttribute('data-version');
+            if (manualData[version]) {
+                manualContent.innerHTML = manualData[version];
+                manualHeaderTitle.textContent = `SynchroWave01 ${versionNameMap[version] ?? version} 取扱説明書`;
+                manualOverlay.style.display = 'none';
+                manualDisplay.style.display = 'flex';
+                manualContent.scrollTop = 0;
+                
+                // 画像最適化とレスポンシブ対応を実行
+                setTimeout(() => {
+                    optimizeImages();
+                    forceManualLayout(); // 強制レイアウト適用
+                }, 200); // 少し遅延を増やす
+            }
+        });
+    });
+    
+    // ウィンドウリサイズ時にも実行
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            forceManualLayout();
+        }, 100);
+    });
+});
+</script>
 
 </body>
 </html>
